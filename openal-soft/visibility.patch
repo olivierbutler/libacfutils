@@ -1,5 +1,5 @@
---- openal-soft-1.19.1/config.h.in	2018-10-12 00:05:31.000000000 +0200
-+++ openal-soft-1.19.1-mac-64-new/config.h.in	2021-01-31 04:38:36.000000000 +0100
+--- openal-soft-1.21.0-mac-64/config.h.in	2020-11-04 12:00:35
++++ openal-soft-1.21.0-mac-64/config.h.in-new	2023-09-30 22:42:10
 @@ -1,6 +1,6 @@
  /* API declaration export attribute */
 -#define AL_API  ${EXPORT_DECL}
@@ -7,5 +7,5 @@
 +#define AL_API  __attribute__((visibility("hidden")))
 +#define ALC_API __attribute__((visibility("hidden")))
  
- /* Define any available alignment declaration */
- #define ALIGN(x) ${ALIGN_DECL}
+ /* Define if HRTF data is embedded in the library */
+ #cmakedefine ALSOFT_EMBED_HRTF_DATA

@@ -269,7 +269,6 @@ tooltip_set_new_native(XPLMWindowID window)
 	tts->surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
 	tts->cr = cairo_create(tts->surf);
 	tts->font_size = TT_FONT_SIZE;
-	tts->font_face = NULL;
 	cairo_set_font_size(tts->cr, tts->font_size);
 	memcpy(tts->bg_color, (double[4]){TT_BACKGROUND_RGBA},
 	    sizeof (tts->bg_color));
