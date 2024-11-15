@@ -1142,7 +1142,11 @@ rwmutex_can_enter_impl(const rwmutex_t *rw, const rwlock_waiter_t *wt_self)
 UNUSED_ATTR static void
 rwmutex_enter(rwmutex_t *rw, bool_t write)
 {
-	rwlock_waiter_t wt = {0};
+	#ifdef __cplusplus
+    rwlock_waiter_t wt = {};
+#else
+    rwlock_waiter_t wt = {0};
+#endif
 
 	wt.write = write;
 	/*
