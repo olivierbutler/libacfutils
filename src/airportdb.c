@@ -368,15 +368,15 @@ recreate_icao_iata_tables(airportdb_t *db, unsigned cap)
 {
 	ASSERT(db != NULL);
 
-	htbl_empty(&db->icao_index, NULL, NULL);
-	htbl_destroy(&db->icao_index);
-	htbl_empty(&db->iata_index, NULL, NULL);
-	htbl_destroy(&db->iata_index);
+	htbl2_empty(&db->icao_index, sizeof (arpt_index_t), NULL, NULL);
+	htbl2_destroy(&db->icao_index);
+	htbl2_empty(&db->iata_index, sizeof (arpt_index_t), NULL, NULL);
+	htbl2_destroy(&db->iata_index);
 
-	htbl_create(&db->icao_index, MAX(P2ROUNDUP(cap), 16),
-	    AIRPORTDB_ICAO_LEN, B_TRUE);
-	htbl_create(&db->iata_index, MAX(P2ROUNDUP(cap), 16),
-	    AIRPORTDB_IATA_LEN, B_TRUE);
+	htbl2_create(&db->icao_index, MAX(P2ROUNDUP(cap), 16),
+	    AIRPORTDB_ICAO_LEN, sizeof (arpt_index_t), B_TRUE);
+	htbl2_create(&db->iata_index, MAX(P2ROUNDUP(cap), 16),
+	    AIRPORTDB_IATA_LEN, sizeof (arpt_index_t), B_TRUE);
 }
 
 /*
@@ -846,10 +846,12 @@ parse_apt_dat_1_line(airportdb_t *db, const char *line, iconv_t *cd_p,
 	if (dup_arpt_p != NULL)
 		*dup_arpt_p = NULL;
 
-	ASSERT(strcmp(comps[0], "1") == 0);
-	if (ncomps < 5)
+	// CAUTION: don't hard-assert the first component is "1" here. The
+	// caller uses sscanf to read the row code, which may accept junk
+	// like "1abc". In those cases, we still want to skip the row code.
+	if (strcmp(comps[0], "1") != 0 || ncomps < 5) {
 		goto out;
-
+	}
 	new_ident = comps[4];
 	pos.elev = atof(comps[1]);
 	if (!is_valid_elev(pos.elev))
@@ -1160,7 +1162,7 @@ parse_apt_dat_freq_line(airport_t *arpt, char *line, bool_t use833)
 	comps = strsplit(line, " ", B_TRUE, &ncomps);
 	if (ncomps < 3)
 		goto out;
-	freq = calloc(1, sizeof (*freq));
+	freq = safe_calloc(1, sizeof (*freq));
 	/*
 	 * When `use833' is provided, the line types start at 1050 instead
 	 * of 50. Also, the frequencies are specified in thousands of Hertz,
@@ -1183,10 +1185,10 @@ parse_apt_dat_freq_line(airport_t *arpt, char *line, bool_t use833)
 		}
 		if (freq->name[0] != '\0') {
 			strncat(&freq->name[strlen(freq->name)], " ",
-			    sizeof (freq->name) - strlen(freq->name));
+			    sizeof (freq->name) - strlen(freq->name) - 1);
 		}
 		strncat(&freq->name[strlen(freq->name)], comps[i],
-		    sizeof (freq->name) - strlen(freq->name));
+		    sizeof (freq->name) - strlen(freq->name) - 1);
 	}
 	list_insert_tail(&arpt->freqs, freq);
 
@@ -2300,11 +2302,14 @@ create_arpt_index(airportdb_t *db, const airport_t *arpt)
 	idx->TL = arpt->TL;
 
 	avl_add(&db->arpt_index, idx);
-	if (idx->icao[0] != '\0')
-		htbl_set(&db->icao_index, idx->icao, idx);
-	if (idx->iata[0] != '\0')
-		htbl_set(&db->iata_index, idx->iata, idx);
-
+	if (idx->icao[0] != '\0') {
+		htbl2_set(&db->icao_index, idx->icao, sizeof (idx->icao),
+		    idx, sizeof (*idx));
+	}
+	if (idx->iata[0] != '\0') {
+		htbl2_set(&db->iata_index, idx->iata, sizeof (idx->iata),
+		    idx, sizeof (*idx));
+	}
 	return (idx);
 }
 
@@ -2357,9 +2362,12 @@ read_index_dat(airportdb_t *db)
 		}
 		if (avl_find(&db->arpt_index, idx, &where) == NULL) {
 			avl_insert(&db->arpt_index, idx, where);
-			htbl_set(&db->icao_index, idx->icao, idx);
-			if (strcmp(idx->iata, "-") != 0)
-				htbl_set(&db->iata_index, idx->iata, idx);
+			htbl2_set(&db->icao_index, idx->icao,
+			    sizeof (idx->icao), idx, sizeof (*idx));
+			if (strcmp(idx->iata, "-") != 0) {
+				htbl2_set(&db->iata_index, idx->iata,
+				    sizeof (idx->iata), idx, sizeof (*idx));
+			}
 		} else {
 			logMsg("WARNING: found duplicate airport ident %s "
 			    "in index. Skipping it. This shouldn't happen "
@@ -3170,8 +3178,10 @@ airportdb_create(airportdb_t *db, const char *xpdir, const char *cachedir)
 	 * Just some defaults - we'll resize the tables later when
 	 * we actually read the index file.
 	 */
-	htbl_create(&db->icao_index, 16, AIRPORTDB_ICAO_LEN, B_TRUE);
-	htbl_create(&db->iata_index, 16, AIRPORTDB_IATA_LEN, B_TRUE);
+	htbl2_create(&db->icao_index, 16, AIRPORTDB_ICAO_LEN,
+	    sizeof (arpt_index_t), B_TRUE);
+	htbl2_create(&db->iata_index, 16, AIRPORTDB_IATA_LEN,
+	    sizeof (arpt_index_t), B_TRUE);
 }
 
 /**
@@ -3201,10 +3211,10 @@ airportdb_destroy(airportdb_t *db)
 	avl_destroy(&db->geo_table);
 	avl_destroy(&db->apt_dat);
 
-	htbl_empty(&db->icao_index, NULL, NULL);
-	htbl_destroy(&db->icao_index);
-	htbl_empty(&db->iata_index, NULL, NULL);
-	htbl_destroy(&db->iata_index);
+	htbl2_empty(&db->icao_index, sizeof (arpt_index_t), NULL, NULL);
+	htbl2_destroy(&db->icao_index);
+	htbl2_empty(&db->iata_index, sizeof (arpt_index_t), NULL, NULL);
+	htbl2_destroy(&db->iata_index);
 
 	mutex_destroy(&db->lock);
 
@@ -3275,7 +3285,7 @@ airport_lookup_htbl_multi(airportdb_t *db, const list_t *list,
 
 	for (void *mv = list_head(list); mv != NULL;
 	    mv = list_next(list, mv)) {
-		arpt_index_t *idx = HTBL_VALUE_MULTI(mv);
+		arpt_index_t *idx = htbl2_value_multi(mv, sizeof (*idx));
 
 		if (found_cb != NULL) {
 			airport_t *apt = adb_airport_lookup(db, idx->ident,
@@ -3327,7 +3337,8 @@ adb_airport_lookup_by_icao(airportdb_t *db, const char *icao,
 	ASSERT(icao != NULL);
 
 	strlcpy(icao_srch, icao, sizeof (icao_srch));
-	list = htbl_lookup_multi(&db->icao_index, icao_srch);
+	list = htbl2_lookup_multi(&db->icao_index, icao_srch,
+	    sizeof (icao_srch));
 	if (list != NULL) {
 		airport_lookup_htbl_multi(db, list, found_cb, userinfo);
 		return (list_count(list));
@@ -3353,7 +3364,8 @@ adb_airport_lookup_by_iata(airportdb_t *db, const char *iata,
 	ASSERT(iata != NULL);
 
 	strlcpy(iata_srch, iata, sizeof (iata_srch));
-	list = htbl_lookup_multi(&db->iata_index, iata_srch);
+	list = htbl2_lookup_multi(&db->iata_index, iata_srch,
+	    sizeof (iata_srch));
 	if (list != NULL) {
 		airport_lookup_htbl_multi(db, list, found_cb, userinfo);
 		return (list_count(list));

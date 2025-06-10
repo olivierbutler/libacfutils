@@ -40,7 +40,7 @@ opus-mac-64
 opus-win-32
 opus-win-64
 
-curl-8.4.0
+curl-8.13.0
 libcurl-linux-64
 libcurl-win-64
 libcurl-mac-64
@@ -72,7 +72,7 @@ shapelib/libshape-linux-64
 shapelib/libshape-mac-64
 shapelib/libshape-win-64
 shapelib/proj-4.9.3
-shapelib/shapelib-1.4.1
+shapelib/shapelib-1.6.1
 
 ocr/leptonica-1.75.1
 ocr/liblept-linux-64
@@ -83,7 +83,7 @@ ocr/tesseract-linux-64
 ocr/tesseract-mac-64
 ocr/tesseract-win-64
 
-ssl/openssl-1.1.1w
+ssl/openssl-3.5.0
 ssl/openssl-win-64
 ssl/openssl-mac-64
 ssl/openssl-mac-arm

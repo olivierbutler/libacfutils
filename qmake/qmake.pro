@@ -11,7 +11,7 @@
 #
 # CDDL HEADER END
 
-# Copyright 2021 Saso Kiselkov. All rights reserved.
+# Copyright 2024 Saso Kiselkov. All rights reserved.
 
 # Shared library without any Qt functionality
 TEMPLATE = lib
@@ -35,7 +35,6 @@ noxplm=$$[ACFUTILS_NOXPLM]
 INCLUDEPATH += ../src ../SDK/CHeaders/XPLM
 INCLUDEPATH += ../SDK/CHeaders/Widgets
 INCLUDEPATH += ../lzma/C
-INCLUDEPATH += ../junzip
 QMAKE_CFLAGS += -std=c11 -g -W -Wall -Wextra -Werror=vla -fvisibility=hidden
 contains(noerrors, 0) {
 	QMAKE_CFLAGS += -Werror
@@ -130,8 +129,7 @@ win32:contains(CROSS_COMPILE, x86_64-w64-mingw32-) {
 
 		contains(dll, 1) {
 			LIBS += $$system("../pkg-config-deps win-64 \
-			    --whole-archive --static-openal \
-			    --no-link-acfutils --libs")
+			    --static-openal --no-link-acfutils --libs")
 		}
 		contains(dll, 0) {
 			LIBS += $$system("../pkg-config-deps win-64 \
@@ -224,6 +222,8 @@ HEADERS += \
     ../src/acfutils/tls.h \
     ../src/acfutils/tumbler.h \
     ../src/acfutils/types.h \
+    ../src/acfutils/vector.h \
+    ../src/acfutils/vector_impl.h \
     ../src/acfutils/wmm.h \
     ../src/acfutils/worker.h \
     ../src/acfutils/xpfail.h
@@ -259,12 +259,12 @@ SOURCES += \
     ../src/time.c \
     ../src/thread.c \
     ../src/tumbler.c \
+    ../src/vector.c \
     ../src/wmm.c \
     ../src/worker.c
 
 # Dependency headers & sources
 HEADERS +=  \
-    ../junzip/junzip.h \
     ../ucpp/nhash.h \
     ../ucpp/tune.h \
     ../ucpp/arith.h \
@@ -274,7 +274,7 @@ HEADERS +=  \
     ../ucpp/ucppi.h
 
 SOURCES += \
-    ../junzip/junzip.c \
+    ../src/zip/zip.c \
     ../ucpp/mem.c \
     ../ucpp/nhash.c \
     ../ucpp/cpp.c \
