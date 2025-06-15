@@ -78,11 +78,7 @@ function build_ssl() {
 				patch -p1 < ../atexit.patch ) || exit 1
 			mkdir -p "$OUTDIR"
 			cd "$OPENSSL"
-<<<<<<< HEAD
 			./Configure no-shared no-dso no-tests no-docs \
-=======
-			./Configure no-shared no-dso no-tests \
->>>>>>> upstream/master
 			    --prefix="$OUTDIR" $CONFOPTS && \
 			    make clean && \
 			    make -j "$NCPUS" && \
