@@ -67,7 +67,7 @@ DEFINES += GL_GLEXT_PROTOTYPES
 DEFINES += ACFUTILS_BUILD
 
 # Latest X-Plane APIs. No legacy support needed.
-DEFINES += XPLM200 XPLM210 XPLM300 XPLM301
+DEFINES += XPLM200 XPLM210 XPLM300 XPLM301 XPLM303
 
 contains(minimal, 1) {
 	# We want OpenAL soft extensions

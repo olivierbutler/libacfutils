@@ -19,6 +19,8 @@ source ../build_dep.common
 
 LIBPNG="libpng-1.6.40.tar.bz2"
 
+LIBPNG_PATCHES="libpng-mac-math.patch"
+
 case `uname` in
 	Linux)
 		CFLAGS="$CFLAGS_COMMON\\ -I$(pwd)/../zlib/zlib-linux-64/include\\ -m64" \
@@ -27,14 +29,14 @@ case `uname` in
 		    $(pwd)/../zlib/zlib-linux-64/include/zconf.h && \
 		    ln -s $(pwd)/../zlib/zlib-linux-64/include/zlib.h" \
 		    build_dep "linux-64" "--enable-static --disable-shared" \
-		    "$LIBPNG" "libpng" "lib/libpng16.a" && \
+		    "$LIBPNG" "libpng" "lib/libpng16.a" "$LIBPNG_PATCHES" && \
 		CFLAGS="$CFLAGS_COMMON\\ -I$(pwd)/../zlib/zlib-win-64/include" \
 		    LDFLAGS="$LDFLAGS_COMMON\\ -L$(pwd)/../zlib/zlib-win-64/lib" \
 		    CUSTPREPCMD="ln -s $(pwd)/../zlib/zlib-win-64/include/zconf.h \
 		    && ln -s $(pwd)/../zlib/zlib-win-64/include/zlib.h" \
 		    build_dep "win-64" "--enable-static --disable-shared \
 		    --host=x86_64-w64-mingw32" \
-		    "$LIBPNG" "libpng" "lib/libpng16.a"
+		    "$LIBPNG" "libpng" "lib/libpng16.a" "$LIBPNG_PATCHES"
 		;;
 	Darwin)
         # This feels stupid, but libpng checks what architecture the *host* platform is running,
@@ -45,7 +47,7 @@ case `uname` in
 		CFLAGS="$CFLAGS_COMMON\\ -mmacosx-version-min=10.6" \
 		    LDFLAGS="$LDFLAGS_COMMON\\ -mmacosx-version-min=10.6" \
 		    ARCH=x86_64 build_dep "mac-64" "--enable-static --disable-shared --disable-hardware-optimizations --disable-arm-neon" \
-		    "$LIBPNG" "libpng" "lib/libpng16.a"
+		    "$LIBPNG" "libpng" "lib/libpng16.a" "$LIBPNG_PATCHES"
 		;;
 	*)
 		echo "Unsupported build platform" >&2
