@@ -37,7 +37,7 @@ case `uname` in
 		    "$FREETYPE" "freetype" "lib/libfreetype.a" \
 		    $FREETYPE_PATCH && \
 		build_dep "win-64" "$FREETYPE_CONFOPTS_COMMON \
-		    --enable-shared --host=x86_64-w64-mingw32" \
+		    --host=x86_64-w64-mingw32" \
 		    "$FREETYPE" "freetype" "lib/libfreetype.a" \
 		    $FREETYPE_PATCH
 		;;
